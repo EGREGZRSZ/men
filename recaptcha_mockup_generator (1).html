@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google reCAPTCHA Mockup Generator</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+    
+    /* Tile selection indicator */
+    .tile-selected::after {
+      content: '';
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 24px;
+      height: 24px;
+      background-color: #1a73e8;
+      border-radius: 50%;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+      background-size: 16px;
+      background-position: center;
+      background-repeat: no-repeat;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+      animation: popIn 0.15s ease-out;
+      z-index: 10;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0); }
+      80% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .grid-tile {
+      background-size: 300% 300%;
+      transition: transform 0.1s ease, border-color 0.1s ease;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen py-8 px-4 flex flex-col justify-center items-center">
+
+  <header class="mb-6 text-center">
+    <h1 class="text-2xl font-bold text-gray-800 flex items-center justify-center gap-2">
+      <i class="fa-solid fa-shield-halved text-blue-600"></i> Générateur reCAPTCHA avec Images Mélangées
+    </h1>
+    <p class="text-sm text-gray-600 mt-1">Personnalisez votre reCAPTCHA et découpez vos images en désordre (3x3 grid)</p>
+  </header>
+
+  <!-- Main Container -->
+  <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- Customization Panel -->
+    <div class="lg:col-span-5 bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-5 order-2 lg:order-1">
+      <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
+        <i class="fa-solid fa-sliders text-gray-500"></i> Options de Personnalisation
+      </h2>
+
+      <!-- Target Text Input -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Texte Principal</label>
+        <input id="input-prompt" type="text" value="Votre Texte" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+      </div>
+
+      <!-- Instruction Text Input -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Instruction Subsecondaire</label>
+        <input id="input-subtext" type="text" value="S'il n'y en a pas, cliquez sur ignorer" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+      </div>
+
+      <!-- Shuffle / Scramble Button -->
+      <div>
+        <button onclick="shuffleGrid()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-shuffle"></i> Mélanger les tuiles (Mettre en désordre)
+        </button>
+      </div>
+
+      <!-- Preset Images -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Changer d'image modèle</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="setPresetImage('https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=800')" class="border-2 border-transparent hover:border-blue-500 rounded-lg overflow-hidden h-16 transition focus:outline-none">
+            <img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=300" class="w-full h-full object-cover" alt="Image 1">
+          </button>
+          <button onclick="setPresetImage('https://images.unsplash.com/photo-1494783367193-149034c05e8f?q=80&w=800')" class="border-2 border-transparent hover:border-blue-500 rounded-lg overflow-hidden h-16 transition focus:outline-none">
+            <img src="https://images.unsplash.com/photo-1494783367193-149034c05e8f?q=80&w=300" class="w-full h-full object-cover" alt="Image 2">
+          </button>
+          <button onclick="setPresetImage('https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=800')" class="border-2 border-transparent hover:border-blue-500 rounded-lg overflow-hidden h-16 transition focus:outline-none">
+            <img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=300" class="w-full h-full object-cover" alt="Image 3">
+          </button>
+        </div>
+      </div>
+
+      <!-- Custom Image Upload -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Charger votre propre image</label>
+        <input id="image-upload" type="file" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-gray-200 rounded-lg">
+      </div>
+
+      <!-- Status Display -->
+      <div id="status-message" class="hidden p-3 rounded-lg text-sm font-medium transition-all"></div>
+    </div>
+
+    <!-- reCAPTCHA Display Box -->
+    <div class="lg:col-span-7 flex justify-center order-1 lg:order-2">
+      <div class="w-[350px] sm:w-[400px] bg-white border border-gray-300 rounded-sm shadow-xl overflow-hidden p-2">
+        
+        <!-- Header Banner -->
+        <div class="bg-[#1A73E8] text-white p-4 flex justify-between items-start min-h-[110px]">
+          <div class="space-y-1 pr-2">
+            <p class="text-sm font-normal leading-tight opacity-95">Sélectionnez toutes les cases associées à :</p>
+            <h2 id="display-prompt" class="text-2xl font-bold leading-tight tracking-wide break-words">Votre Texte</h2>
+            <p id="display-subtext" class="text-xs font-normal opacity-90 pt-1">S'il n'y en a pas, cliquez sur ignorer</p>
+          </div>
+          
+          <!-- Thumbnail -->
+          <div class="w-20 h-20 bg-white/10 border-2 border-white rounded-sm overflow-hidden flex-shrink-0 relative">
+            <img id="header-thumb" src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=800" class="w-full h-full object-cover object-center" alt="Vignette">
+          </div>
+        </div>
+
+        <!-- 3x3 Shuffled Grid -->
+        <div id="captcha-grid" class="grid grid-cols-3 gap-[2px] bg-white my-2 border border-white">
+          <!-- Generated Grid Tiles -->
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-between pt-1 pb-1 px-2">
+          <div class="flex items-center space-x-4 text-gray-500">
+            <button onclick="shuffleGrid()" title="Mélanger à nouveau" class="hover:text-gray-800 transition focus:outline-none p-1">
+              <i class="fa-solid fa-rotate-right text-lg"></i>
+            </button>
+            <button onclick="showMessage('Option audio indisponible.', 'info')" title="Audio" class="hover:text-gray-800 transition focus:outline-none p-1">
+              <i class="fa-solid fa-headphones text-lg"></i>
+            </button>
+            <button onclick="showMessage('Simulateur reCAPTCHA interactif.', 'info')" title="Information" class="hover:text-gray-800 transition focus:outline-none p-1">
+              <i class="fa-circle-info fa-regular text-lg"></i>
+            </button>
+          </div>
+
+          <button id="verify-btn" onclick="handleVerify()" class="bg-[#1A73E8] hover:bg-blue-700 text-white font-medium text-xs tracking-wider py-2.5 px-6 rounded-sm shadow-sm transition-colors uppercase">
+            IGNORER
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Define original tile coordinate positions for 3x3 background slicing
+    const originalPositions = [
+      { x: '0%', y: '0%' },     // 0: top-left
+      { x: '50%', y: '0%' },    // 1: top-center
+      { x: '100%', y: '0%' },   // 2: top-right
+      { x: '0%', y: '50%' },    // 3: middle-left
+      { x: '50%', y: '50%' },   // 4: center
+      { x: '100%', y: '50%' },  // 5: middle-right
+      { x: '0%', y: '100%' },   // 6: bottom-left
+      { x: '50%', y: '100%' },  // 7: bottom-center
+      { x: '100%', y: '100%' }  // 8: bottom-right
+    ];
+
+    // State object
+    const state = {
+      selectedTiles: new Set(),
+      currentImageUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=800',
+      shuffledIndices: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    };
+
+    // DOM Elements
+    const inputPrompt = document.getElementById('input-prompt');
+    const inputSubtext = document.getElementById('input-subtext');
+    const displayPrompt = document.getElementById('display-prompt');
+    const displaySubtext = document.getElementById('display-subtext');
+    const verifyBtn = document.getElementById('verify-btn');
+    const captchaGrid = document.getElementById('captcha-grid');
+    const headerThumb = document.getElementById('header-thumb');
+    const imageUpload = document.getElementById('image-upload');
+    const statusMsg = document.getElementById('status-message');
+
+    // Input listeners
+    inputPrompt.addEventListener('input', (e) => {
+      displayPrompt.textContent = e.target.value || 'Votre Texte';
+    });
+
+    inputSubtext.addEventListener('input', (e) => {
+      displaySubtext.textContent = e.target.value || "S'il n'y en a pas, cliquez sur ignorer";
+    });
+
+    // Custom Image Upload
+    imageUpload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          setPresetImage(event.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Shuffle array utility (Fisher-Yates)
+    function scrambleArray(arr) {
+      const array = [...arr];
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Build grid DOM with current shuffled mapping
+    function renderGrid() {
+      captchaGrid.innerHTML = '';
+      
+      state.shuffledIndices.forEach((tilePieceIndex, gridPositionIndex) => {
+        const button = document.createElement('button');
+        button.className = 'grid-tile relative aspect-square w-full focus:outline-none transition-transform active:scale-[0.97]';
+        
+        // Apply background position belonging to the slice
+        const slice = originalPositions[tilePieceIndex];
+        button.style.backgroundImage = `url('${state.currentImageUrl}')`;
+        button.style.backgroundPosition = `${slice.x} ${slice.y}`;
+        
+        if (state.selectedTiles.has(gridPositionIndex)) {
+          button.classList.add('tile-selected', 'scale-[0.95]', 'ring-2', 'ring-blue-500', 'ring-inset');
+        }
+
+        button.onclick = () => toggleTile(gridPositionIndex, button);
+        captchaGrid.appendChild(button);
+      });
+    }
+
+    // Shuffle grid tiles randomly
+    function shuffleGrid() {
+      state.shuffledIndices = scrambleArray([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+      resetSelection();
+      renderGrid();
+    }
+
+    // Change background image and scramble
+    function setPresetImage(url) {
+      state.currentImageUrl = url;
+      headerThumb.src = url;
+      shuffleGrid();
+    }
+
+    // Toggle tile selection state
+    function toggleTile(index, element) {
+      if (state.selectedTiles.has(index)) {
+        state.selectedTiles.delete(index);
+        element.classList.remove('tile-selected', 'scale-[0.95]', 'ring-2', 'ring-blue-500', 'ring-inset');
+      } else {
+        state.selectedTiles.add(index);
+        element.classList.add('tile-selected', 'scale-[0.95]', 'ring-2', 'ring-blue-500', 'ring-inset');
+      }
+      
+      updateVerifyButton();
+    }
+
+    // Update Action Button Text (IGNORER vs VALIDER)
+    function updateVerifyButton() {
+      if (state.selectedTiles.size > 0) {
+        verifyBtn.textContent = 'VALIDER';
+      } else {
+        verifyBtn.textContent = 'IGNORER';
+      }
+    }
+
+    // Clear active selections
+    function resetSelection() {
+      state.selectedTiles.clear();
+      updateVerifyButton();
+      hideMessage();
+    }
+
+    // Handle verification
+    function handleVerify() {
+      if (state.selectedTiles.size === 0) {
+        showMessage('Image ignorée. Nouveau mélange...', 'info');
+        setTimeout(() => shuffleGrid(), 600);
+      } else {
+        const isSuccess = Math.random() > 0.4;
+        if (isSuccess) {
+          showMessage('Vérification réussie !', 'success');
+        } else {
+          showMessage('Veuillez réessayer. Les pièces ne correspondent pas.', 'error');
+        }
+      }
+    }
+
+    // Display status feedback
+    function showMessage(msg, type) {
+      statusMsg.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800');
+      
+      if (type === 'success') {
+        statusMsg.classList.add('bg-green-100', 'text-green-800');
+      } else if (type === 'error') {
+        statusMsg.classList.add('bg-red-100', 'text-red-800');
+      } else {
+        statusMsg.classList.add('bg-blue-100', 'text-blue-800');
+      }
+
+      statusMsg.textContent = msg;
+    }
+
+    function hideMessage() {
+      statusMsg.classList.add('hidden');
+    }
+
+    // Initialize application
+    window.onload = function() {
+      shuffleGrid();
+    };
+  </script>
+</body>
+</html>
